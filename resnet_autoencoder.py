@@ -29,11 +29,11 @@ class ResNetAutoencoder(nn.Module):
 
 
 # test
-x = torch.randn((2, 3, 32, 32))
+# x = torch.randn((2, 3, 32, 32))
 
-model = ResNetAutoencoder(encoder_block=resnet_encoder.BasicBlock, decoder_block = resnet_decoder.BasicBlockDecoder)
-model.eval()
-with torch.no_grad():
-    out, x_hat = model(x)
-print(out.shape)
-print(x_hat.shape)
+# model = ResNetAutoencoder(encoder_block=resnet_encoder.BasicBlock, decoder_block = resnet_decoder.BasicBlockDecoder)
+# model.eval()
+# with torch.no_grad():
+#     out, x_hat = model(x)
+# print(out.shape)
+# print(x_hat.shape)
