@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Any, Callable, List, Optional, Type, Union
+from typing import Any, Callable, List, Tuple, Optional, Type, Union
 from resnet_encoder import BasicBlock, Bottleneck, resnet18Encoder
 from resnet_decoder import BasicBlockDecoder, BottleneckDecoder, resnet18Decoder
 
@@ -12,11 +12,11 @@ class ResNetAutoencoder(nn.Module):
         self,
         encoder_block: Union[BasicBlock, Bottleneck],
         decoder_block: Union[BasicBlockDecoder, BottleneckDecoder],
+        reconstructed_shape: Tuple = (32, 32),
         num_classes: int = 1000
     ) -> None:
         super().__init__()
         self.encoder = resnet18Encoder(encoder_block)
-        reconstructed_shape = (32, 32)
         self.decoder = resnet18Decoder(reconstructed_shape, decoder_block)
         self.fc = nn.Linear(512 * encoder_block.expansion, num_classes)
 

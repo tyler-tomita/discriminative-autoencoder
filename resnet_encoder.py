@@ -160,12 +160,15 @@ class ResNetEncoder(nn.Module):
                 "replace_stride_with_dilation should be None "
                 f"or a 3-element tuple, got {replace_stride_with_dilation}"
             )
+        
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
+        # because cifar-10 images are much smaller, we use a kernel_size of 3, stride of 1, and remove the first max pooling operation
+        # self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
+        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
@@ -237,17 +240,17 @@ class ResNetEncoder(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        # print(x.shape) # (h/2, w/2)
-        x = self.maxpool(x)
+        # print(x.shape) # (h, h) or (h/2, w/2)
+        # x = self.maxpool(x)
         # print(x.shape) # (h/4, w/4)
         x = self.layer1(x)
-        # print(x.shape) # (h/4, w/4)
+        # print(x.shape) # (h, h) or (h/4, w/4)
         x = self.layer2(x)
-        # print(x.shape) # (h/8, w/8)
+        # print(x.shape) # (h/2, h/2) or (h/8, w/8)
         x = self.layer3(x)
-        # print(x.shape) # (h/16, w/16)
+        # print(x.shape) # (h/4, h/4) or (h/16, w/16)
         x = self.layer4(x)
-        # print(x.shape) # (h/32, w/32)
+        # print(x.shape) # (h/8, h/8) or (h/32, w/32)
         x = self.avgpool(x)
         # print(x.shape) # (1, 1)
         x = torch.flatten(x, 1)
@@ -293,3 +296,4 @@ def resnet18Encoder(block=BasicBlock, **kwargs: Any) -> ResNetEncoder:
 # model.eval()
 # with torch.no_grad():
 #     out = model(x)
+# print(out.shape)

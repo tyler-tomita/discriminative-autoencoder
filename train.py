@@ -1,9 +1,8 @@
 import torch
 import time
-from matplotlib import pyplot as plt
 import copy
 
-def train_dae(model, dataloaders, criterion_autoencoder, criterion_discriminator, optimizer, lambda_autoencoder, num_epochs=10, plot_max=1, plot_style=None):
+def train_dae(model, dataloaders, criterion_autoencoder, criterion_discriminator, optimizer, lambda_autoencoder, num_epochs=10):
     # trains a discrminative autoencoder
     # discriminator weight is the weight w in loss = (1-w)*reconstruction_error + w*negative_log_likelihood
 
@@ -46,8 +45,8 @@ def train_dae(model, dataloaders, criterion_autoencoder, criterion_discriminator
         # forward
         # track history if only in train
         with torch.no_grad():
-            _, _, _, outputs_deconv, outputs_discriminator = model(inputs)
-            loss_autoencoder = criterion_autoencoder(outputs_deconv.to(device), inputs).view(inputs.size(0), -1).mean(dim=1).sum()
+            outputs_discriminator, outputs_autoencoder = model(inputs)
+            loss_autoencoder = criterion_autoencoder(outputs_autoencoder.to(device), inputs).view(inputs.size(0), -1).mean(dim=1).sum()
             loss_autoencoder = loss_autoencoder / inputs.size(0)
             loss_discriminator = criterion_discriminator(outputs_discriminator.squeeze().to(device), labels)
             loss = loss_discriminator + lambda_autoencoder*loss_autoencoder
@@ -95,8 +94,8 @@ def train_dae(model, dataloaders, criterion_autoencoder, criterion_discriminator
                 # forward
                 # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
-                    _, _, _, outputs_deconv, outputs_discriminator = model(inputs)
-                    loss_autoencoder = criterion_autoencoder(outputs_deconv.to(device), inputs).view(inputs.size(0), -1).mean(dim=1).sum()
+                    outputs_discriminator, outputs_autoencoder = model(inputs)
+                    loss_autoencoder = criterion_autoencoder(outputs_autoencoder.to(device), inputs).view(inputs.size(0), -1).mean(dim=1).sum()
                     loss_autoencoder = loss_autoencoder / inputs.size(0)
                     loss_discriminator = criterion_discriminator(outputs_discriminator.squeeze().to(device), labels)
                     loss = loss_discriminator + lambda_autoencoder*loss_autoencoder

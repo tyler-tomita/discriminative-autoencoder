@@ -57,15 +57,6 @@ class BasicBlockDecoder(nn.Module):
         self.upsample = upsample
         self.stride = stride
 
-
-        # self.conv1 = conv3x3(inplanes, planes, stride)
-        # self.bn1 = norm_layer(planes)
-        # self.relu = nn.ReLU(inplace=True)
-        # self.conv2 = conv3x3(planes, planes)
-        # self.bn2 = norm_layer(planes)
-        # self.downsample = downsample
-        # self.stride = stride
-
     def forward(self, x: Tensor) -> Tensor:
         identity = x
 
@@ -75,8 +66,10 @@ class BasicBlockDecoder(nn.Module):
 
         out = self.deconv2(out)
         out = self.bn2(out)
+
         if self.upsample is not None:
             identity = self.upsample(x)
+            
         out += identity
         out = self.relu(out)
 
@@ -112,14 +105,6 @@ class BottleneckDecoder(nn.Module):
         self.deconv3 = deconv1x1(width, outplanes)
         self.bn3 = norm_layer(outplanes)
         self.relu = nn.ReLU(inplace=True)
-
-        # self.conv1 = conv1x1(inplanes, width)
-        # self.bn1 = norm_layer(width)
-        # self.conv2 = conv3x3(width, width, stride, groups, dilation)
-        # self.bn2 = norm_layer(width)
-        # self.conv3 = conv1x1(width, planes * self.expansion)
-        # self.bn3 = norm_layer(planes * self.expansion)
-        # self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x: Tensor) -> Tensor:
         identity = x
@@ -193,25 +178,17 @@ class ResNetDecoder(nn.Module):
         self.groups = groups
         self.base_width = width_per_group
         
-        expand_shape = (int(output_shape[0] / 32), int(output_shape[0] / 32))
+        # expand_shape = (int(output_shape[0] / 32), int(output_shape[0] / 32))
+        expand_shape = (int(output_shape[0] / 8), int(output_shape[0] / 8))
         self.unpool1 = nn.Upsample(size=expand_shape)
         self.layer1 = self._make_layer(block, 256, layers[0], stride=2, dilate=replace_stride_with_dilation[0], output_padding=1)
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[1], output_padding=1)
         self.layer3 = self._make_layer(block, 64, layers[2], stride=2, dilate=replace_stride_with_dilation[2], output_padding=1)
         self.layer4 = self._make_layer(block, int(64 / block.expansion), layers[3])
 
-        self.unpool2 = nn.Upsample(scale_factor=2)
-        self.deconv1 = nn.ConvTranspose2d(64, 3, kernel_size=7, stride=2, padding=3, output_padding=1, bias=False)
-        # self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
-        # self.bn1 = norm_layer(self.inplanes)
-        # self.relu = nn.ReLU(inplace=True)
-        # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        # self.layer1 = self._make_layer(block, 64, layers[0])
-        # self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
-        # self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
-        # self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
-        # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        # self.fc = nn.Linear(512 * block.expansion, num_classes)
+        # self.unpool2 = nn.Upsample(scale_factor=2)
+        # self.deconv1 = nn.ConvTranspose2d(64, 3, kernel_size=7, stride=2, padding=3, output_padding=1, bias=False)
+        self.deconv1 = nn.ConvTranspose2d(64, 3, kernel_size=3, stride=1, padding=1, output_padding=0, bias=False)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -271,30 +248,6 @@ class ResNetDecoder(nn.Module):
             )
         )
         self.inplanes = planes
-        # if stride != 1 or self.inplanes != planes * block.expansion:
-        #     downsample = nn.Sequential(
-        #         conv1x1(self.inplanes, planes * block.expansion, stride),
-        #         norm_layer(planes * block.expansion),
-        #     )
-
-        # layers = []
-        # layers.append(
-        #     block(
-        #         self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer
-        #     )
-        # )
-        # self.inplanes = planes * block.expansion
-        # for _ in range(1, blocks):
-        #     layers.append(
-        #         block(
-        #             self.inplanes,
-        #             planes,
-        #             groups=self.groups,
-        #             base_width=self.base_width,
-        #             dilation=self.dilation,
-        #             norm_layer=norm_layer,
-        #         )
-        #     )
 
         return nn.Sequential(*layers)
 
@@ -315,7 +268,7 @@ class ResNetDecoder(nn.Module):
         # print(x.shape)
         x = self.layer4(x)
         # print(x.shape)
-        x = self.unpool2(x)
+        # x = self.unpool2(x)
         # print(x.shape)
         x = self.deconv1(x)
         # print(x.shape)
@@ -359,3 +312,4 @@ def resnet18Decoder(output_shape, block=BasicBlockDecoder, **kwargs: Any) -> Res
 # model.eval()
 # with torch.no_grad():
 #     out = model(x)
+# print(out.shape)
