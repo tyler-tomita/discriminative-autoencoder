@@ -19,10 +19,11 @@ class ResNetAutoencoder(nn.Module):
         self.encoder = resnet18Encoder(encoder_block)
         self.decoder = resnet18Decoder(reconstructed_shape, decoder_block)
         self.fc = nn.Linear(512 * encoder_block.expansion, num_classes)
+        self.softmax = nn.LogSoftmax(dim=-1)
 
     def forward(self, x: Tensor) -> Tensor:
         x = self.encoder(x)
-        out = self.fc(x)
+        out = self.softmax(self.fc(x))
         x = self.decoder(x)
 
         return out, x

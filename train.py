@@ -11,6 +11,10 @@ def train_dae(model, dataloaders, criterion_autoencoder, criterion_discriminator
 
     best_model_wts = copy.deepcopy(model.state_dict())
 
+    dataset_sizes = {}
+    for phase in ('train', 'val'):
+        dataset_sizes[phase] = len(dataloaders[phase].dataset)
+
     # Get initial validation loss
     # Iterate over data.
     phase = 'val'
@@ -64,7 +68,7 @@ def train_dae(model, dataloaders, criterion_autoencoder, criterion_discriminator
     discriminator_losses[phase][0] = running_discriminator_loss / dataset_sizes[phase]
     classification_errors[phase][0] = running_classification_error / dataset_sizes[phase]
 
-    best_loss = running_loss / dataset_sizes[phase]
+    best_loss = total_losses[phase][0]
     best_discriminator_loss = discriminator_losses[phase][0]
     best_reconstruction_error = reconstruction_errors[phase][0]
     best_error = classification_errors[phase][0]
