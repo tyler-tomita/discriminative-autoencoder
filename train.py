@@ -62,14 +62,20 @@ def train_dae(model, dataloaders, criterion_autoencoder, criterion_discriminator
     reconstruction_errors[phase][0] = running_reconstruction_error / dataset_sizes[phase]
     discriminator_losses[phase][0] = running_discriminator_loss / dataset_sizes[phase]
     classification_errors[phase][0] = running_classification_error / dataset_sizes[phase]
+
     best_loss = running_loss / dataset_sizes[phase]
     best_discriminator_loss = discriminator_losses[phase][0]
     best_reconstruction_error = reconstruction_errors[phase][0]
     best_error = classification_errors[phase][0]
 
+    print(f'{phase} Loss: {total_losses[phase][0]:.4f}')
+    print(f'{phase} Reconstruction Error: {reconstruction_errors[phase][0]:.4f}')
+    print(f'{phase} Discriminator Loss: {discriminator_losses[phase][0]:.4f}')
+    print(f'{phase} Classification Error: {classification_errors[phase][0]:.4f}')
+
     for epoch in range(num_epochs):
-        # print(f'Epoch {epoch}/{num_epochs - 1}')
-        # print('-' * 10)
+        print(f'Epoch {epoch}/{num_epochs - 1}')
+        print('-' * 10)
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
@@ -122,8 +128,10 @@ def train_dae(model, dataloaders, criterion_autoencoder, criterion_discriminator
             discriminator_losses[phase][epoch_idx] = running_discriminator_loss / dataset_sizes[phase]
             classification_errors[phase][epoch_idx] = running_classification_error / dataset_sizes[phase]
 
-            # print(f'{phase} Loss: {epoch_loss:.4f}')
-            # print(f'{phase} Error: {epoch_error:.4f}')
+            print(f'{phase} Loss: {total_losses[phase][epoch_idx]:.4f}')
+            print(f'{phase} Reconstruction Error: {reconstruction_errors[phase][epoch_idx]:.4f}')
+            print(f'{phase} Discriminator Loss: {discriminator_losses[phase][epoch_idx]:.4f}')
+            print(f'{phase} Classification Error: {classification_errors[phase][epoch_idx]:.4f}')
 
             # deep copy the model
             if phase == 'val' and discriminator_losses[phase][epoch_idx] < best_discriminator_loss:
