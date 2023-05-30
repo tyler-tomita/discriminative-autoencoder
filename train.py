@@ -1,6 +1,7 @@
 import torch
 import time
 import copy
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train_dae(model, dataloaders, criterion_autoencoder, criterion_discriminator, optimizer, lambda_autoencoder, num_epochs=10):
     # trains a discrminative autoencoder
