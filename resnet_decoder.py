@@ -156,6 +156,7 @@ class ResNetDecoder(nn.Module):
         zero_init_residual: bool = False,
         groups: int = 1,
         width_per_group: int = 64,
+        projection_head: bool = False,
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
@@ -177,6 +178,9 @@ class ResNetDecoder(nn.Module):
             )
         self.groups = groups
         self.base_width = width_per_group
+
+        self.projection_head = projection_head
+        self.fc = nn.Sequential(nn.Linear(512 * block.expansion, 512 * block.expansion), nn.ReLU())
         
         # expand_shape = (int(output_shape[0] / 32), int(output_shape[0] / 32))
         expand_shape = (int(output_shape[0] / 8), int(output_shape[0] / 8))
@@ -257,6 +261,8 @@ class ResNetDecoder(nn.Module):
         
         batch_size = x.shape[0]
         num_channels = x.shape[1]
+        if self.projection_head:
+            x = self.fc(x)
         x = x.view((batch_size, num_channels, 1, 1))
         # print(x.shape)
         x = self.unpool1(x)

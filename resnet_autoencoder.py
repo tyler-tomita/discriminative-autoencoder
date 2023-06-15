@@ -12,12 +12,13 @@ class ResNetAutoencoder(nn.Module):
         self,
         encoder_block: Union[BasicBlock, Bottleneck],
         decoder_block: Union[BasicBlockDecoder, BottleneckDecoder],
+        projection_head: bool = False,
         reconstructed_shape: Tuple = (32, 32),
         num_classes: int = 1000
     ) -> None:
         super().__init__()
-        self.encoder = resnet18Encoder(encoder_block)
-        self.decoder = resnet18Decoder(reconstructed_shape, decoder_block)
+        self.encoder = resnet18Encoder(encoder_block, projection_head=projection_head)
+        self.decoder = resnet18Decoder(reconstructed_shape, decoder_block, projection_head=projection_head)
         self.fc = nn.Linear(512 * encoder_block.expansion, num_classes)
         self.softmax = nn.LogSoftmax(dim=-1)
 
