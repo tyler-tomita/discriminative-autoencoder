@@ -141,7 +141,7 @@ class ResNetEncoder(nn.Module):
         zero_init_residual: bool = False,
         groups: int = 1,
         width_per_group: int = 64,
-        projection_head: bool = False,
+        # projection_head: bool = False,
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
@@ -175,9 +175,9 @@ class ResNetEncoder(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        
-        self.projection_head = projection_head
-        self.fc = nn.Sequential(nn.Linear(512 * block.expansion, 512 * block.expansion), nn.ReLU())
+
+        # self.projection_head = projection_head
+        # self.fc = nn.Sequential(nn.Linear(512 * block.expansion, 512 * block.expansion), nn.ReLU())
         # self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():
@@ -258,8 +258,8 @@ class ResNetEncoder(nn.Module):
         x = self.avgpool(x)
         # print(x.shape) # (1, 1)
         x = torch.flatten(x, 1)
-        if self.projection_head:
-            x = self.fc(x)
+        # if self.projection_head:
+        #     x = self.fc(x)
 
         return x
 

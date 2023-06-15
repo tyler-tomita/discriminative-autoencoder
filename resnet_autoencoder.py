@@ -17,9 +17,17 @@ class ResNetAutoencoder(nn.Module):
         num_classes: int = 1000
     ) -> None:
         super().__init__()
-        self.encoder = resnet18Encoder(encoder_block, projection_head=projection_head)
-        self.decoder = resnet18Decoder(reconstructed_shape, decoder_block, projection_head=projection_head)
-        self.fc = nn.Linear(512 * encoder_block.expansion, num_classes)
+        self.encoder = resnet18Encoder(encoder_block)
+        self.decoder = resnet18Decoder(reconstructed_shape, decoder_block)
+        self.projection_head = projection_head
+        if self.projection_head:
+            self.fc = nn.Sequential(
+                nn.Linear(512 * encoder_block.expansion, 512 * encoder_block.expansion),
+                nn.ReLU(),
+                nn.Linear(512 * encoder_block.expansion, num_classes)
+            )
+        else:
+            self.fc = nn.Linear(512 * encoder_block.expansion, num_classes)
         self.softmax = nn.LogSoftmax(dim=-1)
 
     def forward(self, x: Tensor) -> Tensor:
