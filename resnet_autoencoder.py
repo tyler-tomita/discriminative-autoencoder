@@ -13,6 +13,7 @@ class ResNetAutoencoder(nn.Module):
         encoder_block: Union[BasicBlock, Bottleneck],
         decoder_block: Union[BasicBlockDecoder, BottleneckDecoder],
         projection_head: bool = False,
+        projection_head_size: int = 512,
         reconstructed_shape: Tuple = (32, 32),
         num_classes: int = 1000
     ) -> None:
@@ -22,9 +23,9 @@ class ResNetAutoencoder(nn.Module):
         self.projection_head = projection_head
         if self.projection_head:
             self.fc = nn.Sequential(
-                nn.Linear(512 * encoder_block.expansion, 512 * encoder_block.expansion),
+                nn.Linear(512 * encoder_block.expansion, projection_head_size),
                 nn.ReLU(),
-                nn.Linear(512 * encoder_block.expansion, num_classes)
+                nn.Linear(projection_head_size, num_classes)
             )
         else:
             self.fc = nn.Linear(512 * encoder_block.expansion, num_classes)
