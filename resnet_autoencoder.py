@@ -30,10 +30,16 @@ class ResNetAutoencoder(nn.Module):
         else:
             self.fc = nn.Linear(512 * encoder_block.expansion, num_classes)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: Tensor, outputs: Optional[Tuple] = ('fc', 'decoder')) -> Tuple[Tensor, Tensor]:
         x = self.encoder(x)
-        out = self.fc(x)
-        x = self.decoder(x)
+        if 'fc' in outputs:
+            out = self.fc(x)
+        else:
+            out = torch.tensor([])
+        if 'decoder' in outputs:
+            x = self.decoder(x)
+        else:
+            x = torch.tensor([])
 
         return out, x
 
