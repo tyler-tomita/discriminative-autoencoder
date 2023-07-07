@@ -12,7 +12,7 @@ class ResNetAutoencoder(nn.Module):
         self,
         encoder_block: Union[BasicBlock, Bottleneck],
         decoder_block: Union[BasicBlockDecoder, BottleneckDecoder],
-        projection_head: bool = False,
+        projection_head: bool = 'nonlinear',
         projection_head_size: int = 512,
         reconstructed_shape: Tuple = (32, 32),
         num_classes: int = 1000
@@ -21,13 +21,13 @@ class ResNetAutoencoder(nn.Module):
         self.encoder = resnet18Encoder(encoder_block)
         self.decoder = resnet18Decoder(reconstructed_shape, decoder_block)
         self.projection_head = projection_head
-        if self.projection_head:
+        if self.projection_head == 'nonlinear':
             self.fc = nn.Sequential(
                 nn.Linear(512 * encoder_block.expansion, projection_head_size),
                 nn.ReLU(),
                 nn.Linear(projection_head_size, num_classes)
             )
-        else:
+        elif self.projection_head == 'linear':
             self.fc = nn.Linear(512 * encoder_block.expansion, num_classes)
 
     def forward(self, x: Tensor, outputs: Optional[Tuple] = ('fc', 'decoder')) -> Tuple[Tensor, Tensor]:
@@ -35,7 +35,7 @@ class ResNetAutoencoder(nn.Module):
         if 'fc' in outputs:
             out = self.fc(x)
         else:
-            out = torch.tensor([])
+            out = x
         if 'decoder' in outputs:
             x = self.decoder(x)
         else:
