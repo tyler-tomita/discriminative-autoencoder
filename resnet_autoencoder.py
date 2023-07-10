@@ -27,6 +27,14 @@ class ResNetAutoencoder(nn.Module):
                 nn.ReLU(),
                 nn.Linear(projection_head_size, num_classes)
             )
+        elif self.projection_head == 'nonlinear2':
+            self.fc = nn.Sequential(
+                nn.Linear(512 * encoder_block.expansion, projection_head_size),
+                nn.ReLU(),
+                nn.Linear(projection_head_size, projection_head_size),
+                nn.ReLU(),
+                nn.Linear(projection_head_size, num_classes)
+            )
         elif self.projection_head == 'linear':
             self.fc = nn.Linear(512 * encoder_block.expansion, num_classes)
 
