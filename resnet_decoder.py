@@ -193,7 +193,7 @@ class ResNetDecoder(nn.Module):
         # self.unpool2 = nn.Upsample(scale_factor=2)
         # self.deconv1 = nn.ConvTranspose2d(64, 3, kernel_size=7, stride=2, padding=3, output_padding=1, bias=False)
         self.deconv1 = nn.ConvTranspose2d(64, 3, kernel_size=3, stride=1, padding=1, output_padding=0, bias=False)
-        self.sigmoid = nn.Sigmoid()
+        # self.sigmoid = nn.Sigmoid()
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -279,7 +279,7 @@ class ResNetDecoder(nn.Module):
         # print(x.shape)
         x = self.deconv1(x)
         # print(x.shape)
-        x = self.sigmoid(x)
+        # x = self.sigmoid(x)
 
         return x
 
