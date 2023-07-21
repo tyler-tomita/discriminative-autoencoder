@@ -156,7 +156,7 @@ class ResNetDecoder(nn.Module):
         zero_init_residual: bool = False,
         groups: int = 1,
         width_per_group: int = 64,
-        # projection_head: bool = False,
+        width_multiplier: float = 1.0,
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
@@ -165,7 +165,7 @@ class ResNetDecoder(nn.Module):
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
 
-        self.inplanes = 512
+        self.inplanes = int(512 * width_multiplier)
         self.dilation = 1
         if replace_stride_with_dilation is None:
             # each element in the tuple indicates if we should replace
@@ -185,14 +185,14 @@ class ResNetDecoder(nn.Module):
         # expand_shape = (int(output_shape[0] / 32), int(output_shape[0] / 32))
         expand_shape = (int(output_shape[0] / 8), int(output_shape[0] / 8))
         self.unpool1 = nn.Upsample(size=expand_shape)
-        self.layer1 = self._make_layer(block, 256, layers[0], stride=2, dilate=replace_stride_with_dilation[0], output_padding=1)
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[1], output_padding=1)
-        self.layer3 = self._make_layer(block, 64, layers[2], stride=2, dilate=replace_stride_with_dilation[2], output_padding=1)
-        self.layer4 = self._make_layer(block, int(64 / block.expansion), layers[3])
+        self.layer1 = self._make_layer(block, int(256 * width_multiplier), layers[0], stride=2, dilate=replace_stride_with_dilation[0], output_padding=1)
+        self.layer2 = self._make_layer(block, int(128 * width_multiplier), layers[1], stride=2, dilate=replace_stride_with_dilation[1], output_padding=1)
+        self.layer3 = self._make_layer(block, int(64 * width_multiplier), layers[2], stride=2, dilate=replace_stride_with_dilation[2], output_padding=1)
+        self.layer4 = self._make_layer(block, int(64 * width_multiplier / block.expansion), layers[3])
 
         # self.unpool2 = nn.Upsample(scale_factor=2)
         # self.deconv1 = nn.ConvTranspose2d(64, 3, kernel_size=7, stride=2, padding=3, output_padding=1, bias=False)
-        self.deconv1 = nn.ConvTranspose2d(64, 3, kernel_size=3, stride=1, padding=1, output_padding=0, bias=False)
+        self.deconv1 = nn.ConvTranspose2d(int(64 * width_multiplier), 3, kernel_size=3, stride=1, padding=1, output_padding=0, bias=False)
         # self.sigmoid = nn.Sigmoid()
 
         for m in self.modules():

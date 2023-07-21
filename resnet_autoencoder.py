@@ -12,6 +12,7 @@ class ResNetAutoencoder(nn.Module):
         self,
         encoder_block: Union[BasicBlock, Bottleneck],
         decoder_block: Union[BasicBlockDecoder, BottleneckDecoder],
+        width_multiplier: float = 1.0,
         projection_head: bool = 'nonlinear',
         projection_head_size: int = 512,
         reconstructed_shape: Tuple = (32, 32),
