@@ -50,6 +50,9 @@ class ResNetAutoencoder(nn.Module):
         else:
             xhat = torch.tensor([])
 
+        if 'encoder' not in outputs:
+            x = torch.tensor([])
+
         return x, out, xhat
 
 
