@@ -39,18 +39,18 @@ class ResNetAutoencoder(nn.Module):
         elif self.projection_head == 'linear':
             self.fc = nn.Linear(int(512 * width_multiplier * encoder_block.expansion), num_classes)
 
-    def forward(self, x: Tensor, outputs: Optional[Tuple] = ('fc', 'decoder')) -> Tuple[Tensor, Tensor]:
+    def forward(self, x: Tensor, outputs: Optional[Tuple] = ('encoder', 'fc', 'decoder')) -> Tuple[Tensor, Tensor]:
         x = self.encoder(x)
         if 'fc' in outputs:
             out = self.fc(x)
         else:
             out = x
         if 'decoder' in outputs:
-            x = self.decoder(x)
+            xhat = self.decoder(x)
         else:
-            x = torch.tensor([])
+            xhat = torch.tensor([])
 
-        return out, x
+        return x, out, xhat
 
 
 # test
