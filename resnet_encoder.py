@@ -5,6 +5,8 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
+import copy
+
 
 def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1) -> nn.Conv2d:
     """3x3 convolution with padding"""
@@ -179,7 +181,7 @@ class ResNetEncoder(nn.Module):
         self.layer3 = self._make_layer(block, int(256 * width_multiplier), layers[2], stride=2, dilate=replace_stride_with_dilation[1])
         self.layer4 = self._make_layer(block, int(512 * width_multiplier), layers[3], stride=2, dilate=replace_stride_with_dilation[2])
         if self.variational:
-            self.layerLogVar = self._make_layer(block, int(512 * width_multiplier), layers[3], stride=2, dilate=replace_stride_with_dilation[2])
+            self.layerLogVar = copy.deepcopy(self.layer4)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
         # self.projection_head = projection_head
