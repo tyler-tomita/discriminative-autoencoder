@@ -137,7 +137,8 @@ class ResNetEncoder(nn.Module):
         self,
         block: Type[Union[BasicBlock, Bottleneck]],
         layers: List[int],
-        num_classes: int = 1000,
+        variational: bool = False,
+        # num_classes: int = 1000,
         zero_init_residual: bool = False,
         groups: int = 1,
         width_per_group: int = 64,
@@ -146,6 +147,9 @@ class ResNetEncoder(nn.Module):
         norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
         super(ResNetEncoder, self).__init__()
+
+        self.variational = variational
+
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
@@ -174,6 +178,8 @@ class ResNetEncoder(nn.Module):
         self.layer2 = self._make_layer(block, int(128 * width_multiplier), layers[1], stride=2, dilate=replace_stride_with_dilation[0])
         self.layer3 = self._make_layer(block, int(256 * width_multiplier), layers[2], stride=2, dilate=replace_stride_with_dilation[1])
         self.layer4 = self._make_layer(block, int(512 * width_multiplier), layers[3], stride=2, dilate=replace_stride_with_dilation[2])
+        if self.variational:
+            self.layerLogVar = self._make_layer(block, int(512 * width_multiplier), layers[3], stride=2, dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
         # self.projection_head = projection_head
@@ -253,15 +259,21 @@ class ResNetEncoder(nn.Module):
         # print(x.shape) # (h/2, h/2) or (h/8, w/8)
         x = self.layer3(x)
         # print(x.shape) # (h/4, h/4) or (h/16, w/16)
-        x = self.layer4(x)
-        # print(x.shape) # (h/8, h/8) or (h/32, w/32)
-        x = self.avgpool(x)
-        # print(x.shape) # (1, 1)
-        x = torch.flatten(x, 1)
-        # if self.projection_head:
-        #     x = self.fc(x)
-
-        return x
+        if self.variational:
+            mu = self.layer4(x)
+            mu = self.avgpool(mu)
+            mu = torch.flatten(mu, 1)
+            logvar = self.layerLogVar(x)
+            logvar = self.avgpool(logvar)
+            logvar = torch.flatten(logvar, 1)
+            return mu, logvar
+        else:
+            x = self.layer4(x)
+            # print(x.shape) # (h/8, h/8) or (h/32, w/32)
+            x = self.avgpool(x)
+            # print(x.shape) # (1, 1)
+            x = torch.flatten(x, 1)
+            return x
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
